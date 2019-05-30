@@ -2,17 +2,19 @@
 
 # MESSENTE!
 
-This is the implementation of Messente's test task named. 
+This is the implementation of Messente's test task named task sent by Piret. 
 
 ### Where to get it
 The source code is currently hosted on GitHub at: [https://github.com/ismajilv/messente_test]
 
 ### Overall
-This is AWS Cloudformation template design as diagram. It has 2 main Lambda functions one for Authorization and Authentication(Node.js),
+This is AWS Cloudformation template design as a diagram. 
+![template1-designer](https://user-images.githubusercontent.com/34252511/58658906-5043da80-832a-11e9-9ddc-f6c25d7e36ae.png)
+It has 2 main Lambda functions one for Authorization and Authentication(Node.js),
 another for API call(Python3.7). Besides the Function itself, diagram also shows the sub Functions. API GateWay has 2 stage one is Prod another
 one is Test. Dynamodb table named blacklist_table keep the userid and blacklist. IAM Roles are created based on Policies specified 
 in the [template.yaml](./template.yaml). The Cloud infrastructure is designed in [template.yaml](./template.yaml) file and the nice thing is that
-you can build this stack with one call to [init.sh](./init.sh) in you AWS account. Just run 
+you can build the same stack with one call to [init.sh](./init.sh) in your own AWS account. Just run 
 ```bash
 $ bash init.sh {S3_bucket_name} {stack_name} 
 ```
@@ -29,7 +31,6 @@ aws dynamodb batch-write-item --request-items file://dynamodb_init.json
 It takes S3 bucket name as a first and Cloudformation stack name as 2nd argument. You may need to create S3 bucket(more info: https://docs.aws.amazon.com/cli/latest/reference/s3/index.html).
 Last comment just populates blacklist_table with userids and empty blacklists.
 
-![template1-designer](https://user-images.githubusercontent.com/34252511/58658906-5043da80-832a-11e9-9ddc-f6c25d7e36ae.png)
 Custom authentication and authorization is implemented in [authorizer.js](./src/authorizer.js). Which accepts
 Authentication header with Basic Authentication and return a "Accept" or "Deny" policy with a principalId as an example below:
 ```json
@@ -39,7 +40,7 @@ Authentication header with Basic Authentication and return a "Accept" or "Deny" 
     {
       "Action": "execute-api:Invoke",
       "Effect": "Allow",
-      "Resource": "arn:aws:execute-api:eu-west-1:445401623621:29xe3xpvca/ESTestInvoke-stage/GET/"
+      "Resource": "arn:aws:execute-api:region:0000000000:29xe3xpvca/ESTestInvoke-stage/GET/"
     }
   ]
 }
@@ -51,18 +52,19 @@ Authentication header with Basic Authentication and return a "Accept" or "Deny" 
     {
       "Action": "execute-api:Invoke",
       "Effect": "Deny",
-      "Resource": "arn:aws:execute-api:eu-west-1:445401623621:29xe3xpvca/ESTestInvoke-stage/GET/"
+      "Resource": "arn:aws:execute-api:region:0000000000:29xe3xpvca/ESTestInvoke-stage/GET/"
     }
   ]
 }
 ```
+Python microservice is in [index.py](/src/index.py). Depending on request it calls different functions.
 
 ### Usage
 API small documentation is published in url below:
 https://documenter.getpostman.com/view/7171976/S1TVVwpM?version=latest
 
 ## Final thoughts
-Usage of many try catches are avoided to have simple script. I believe that validation of input should
+Usage of many try catches are avoided to have simple implementation. I believe that validation of input should
 be done before the function accepts the input which AWS provide a way to do. 
 
 ## Improvements
