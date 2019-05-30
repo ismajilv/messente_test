@@ -7,52 +7,78 @@ This is the implementation of Messente's test task named.
 ### Where to get it
 The source code is currently hosted on GitHub at: [https://github.com/ismajilv/messente_test]
 
-### Usage
-Clone the repository:
+### Overall
+This is AWS Cloudformation template design as diagram. It has 2 main Lambda functions one for Authorization and Authentication(Node.js),
+another for API call(Python3.7). Besides the Function itself, diagram also shows the sub Functions. API GateWay has 2 stage one is Prod another
+one is Test. Dynamodb table named blacklist_table keep the userid and blacklist. IAM Roles are created based on Policies specified 
+in the [template.yaml](./template.yaml). The Cloud infrastructure is designed in [template.yaml](./template.yaml) file and the nice thing is that
+you can build this stack with one call to [init.sh](./init.sh) in you AWS account. Just run 
+```bash
+$ bash init.sh {S3_bucket_name} {stack_name} 
 ```
-$ git clone https://github.com/ismajilv/veriff_test
-```
-To deploy to AWS, S3 bucket needs to be created to store all the artifacts. To create S3 bucket, run:
-```
-$ aws s3api create-bucket --bucket {bucket_name} --region {region}
-```
-To upload artifacts to S3 bucket run:
-```
-aws cloudformation package --template-file template.yaml --output-template-file template.packaged.yaml --s3-bucket {bucket_name}
-```
-At this time, we only need to deploy. So, run:
-```
-aws cloudformation deploy --template-file ./template.packaged.yaml --stack-name {choose_stcack_name} --capabilities CAPABILITY_IAM
-```
+and the same implementation is up and running in your AWS account. 
+Content of [init.sh](./init.sh) file:
+```bash
+S3Bucket=$1
+StackName=$2
 
-RESTful API allows Messente's customers to add, remove and list phone number(s) to/from their blacklist.
+aws cloudformation package --template-file template.yaml --output-template-file template.packaged.yaml --s3-bucket $S3Bucket
+aws cloudformation deploy --template-file ./template.packaged.yaml --stack-name $StackName --capabilities CAPABILITY_IAM
+aws dynamodb batch-write-item --request-items file://dynamodb_init.json
 ```
-$ curl --user messente:piret https://9q588comi6.execute-api.eu-west-1.amazonaws.com/Prod/blacklist
+It takes S3 bucket name as a first and Cloudformation stack name as 2nd argument. You may need to create S3 bucket(more info: https://docs.aws.amazon.com/cli/latest/reference/s3/index.html).
+Last comment just populates blacklist_table with userids and empty blacklists.
+
+![template1-designer](https://user-images.githubusercontent.com/34252511/58658906-5043da80-832a-11e9-9ddc-f6c25d7e36ae.png)
+Custom authentication and authorization is implemented in [authorizer.js](./src/authorizer.js). Which accepts
+Authentication header with Basic Authentication and return a "Accept" or "Deny" policy with a principalId as an example below:
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "execute-api:Invoke",
+      "Effect": "Allow",
+      "Resource": "arn:aws:execute-api:eu-west-1:445401623621:29xe3xpvca/ESTestInvoke-stage/GET/"
+    }
+  ]
+}
 ```
 ```json
 {
-    "Items": [
-        4,
-        5
-    ],
-    "Count": 2,
-    "Message": "All the numbers in the blacklist."
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "execute-api:Invoke",
+      "Effect": "Deny",
+      "Resource": "arn:aws:execute-api:eu-west-1:445401623621:29xe3xpvca/ESTestInvoke-stage/GET/"
+    }
+  ]
 }
 ```
-```
-curl -X POST -H --user messente:piret --data '{"number": "3"}' https://9q588comi6.execute-api.eu-west-1.amazonaws.com/Prod/blacklist
-```
-```json
-{"message": "Number: 3 is added to blacklist."}
-```
 
-```
-curl -X "DELETE" --user messente:piret https://9q588comi6.execute-api.eu-west-1.amazonaws.com/Prod/blacklist/3
-```
-```json
-{"message": "Number: 3 is deleted from blacklist."}
-```
-## Overview
+### Usage
+API small documentation is published in url below:
+https://documenter.getpostman.com/view/7171976/S1TVVwpM?version=latest
+
+## Final thoughts
+Usage of many try catches are avoided to have simple script. I believe that validation of input should
+be done before the function accepts the input which AWS provide a way to do. 
+
+## Improvements
+Get request can be supplied with query string to better listing. 
+The user's blacklist can be analysed in Dynamodb and if the pattern is found among those numbers, the user
+should be informed about it. Possible patterns can be, short numbers that can represent advertisement companies
+and further call from same kind of numbers can be blocked automatically. 
+
+## Challanges I faced
+During implementation, the hardest task for me to remove element from list in Dynamodb. To remove a number from
+the blacklist, there was no one call way to Dynamodb as number being paratemer to remove it from blacklist. The way was to get the
+list and find index of that element in this list and send the the index to Dynamodb to remove the element. I spent time reading documentations,
+but could not make it with one call to db. And, I implemented in mentioned way. 
+2nd was, I wanted to store blacklist as a set to eliminate checking whether given element is in set already or not to prevent
+error. But Dynamodb did not let defining empty Set attribute. This is still as open issue in stackoverflow and
+people complaining about it.
 
 
 Thanks!
