@@ -1,11 +1,38 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: API Gateway with Lambda Token Authorizer
+Parameters:
+  TableName:
+    Type: String
+    Default: blacklist_table
+    Description: (Required) The name of the new DynamoDB to store blacklisted numbers
+    MinLength: 1
+    MaxLength: 20
+    AllowedPattern: ^[A-Za-z_]+$
+    ConstraintDescription: Required. Can be characters and underscore only. No numbers
+      or special characters allowed.
 Resources:
+  BlackListTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+      - AttributeName: numb
+        AttributeType: N
+      KeySchema:
+      - AttributeName: numb
+        KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      SSESpecification:
+        SSEEnabled: true
+      TableName:
+        Ref: TableName
   MyApi:
     Type: AWS::Serverless::Api
     Properties:
       StageName: Prod
+      CacheClusterEnabled: false
       Auth:
         DefaultAuthorizer: MessenteTestBasicAuthorizer
         Authorizers:
@@ -17,30 +44,43 @@ Resources:
   MyFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: s3://messente-test-code/df0936bfdd9714056ed7ac3f8e25547a
-      Handler: index.handler
+      CodeUri: s3://messente-test-code/461ff0e7dd366955bf20bf4da80fa555
+      Handler: index.blacklist
       Runtime: python3.7
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName:
+            Ref: TableName
+      Environment:
+        Variables:
+          TABLE_NAME:
+            Ref: TableName
       Events:
-        GetRoot:
+        PostBlacklist:
           Type: Api
           Properties:
             RestApiId:
               Ref: MyApi
-            Path: /
-            Method: get
-            Auth:
-              Authorizer: NONE
-        GetUsers:
+            Path: /blacklist
+            Method: post
+        GetBlacklist:
           Type: Api
           Properties:
             RestApiId:
               Ref: MyApi
-            Path: /users
+            Path: /blacklist
             Method: get
+        DeleteBlacklist:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: MyApi
+            Path: /blacklist/{number}
+            Method: delete
   MessenteTestFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: s3://messente-test-code/df0936bfdd9714056ed7ac3f8e25547a
+      CodeUri: s3://messente-test-code/461ff0e7dd366955bf20bf4da80fa555
       Handler: authorizer.handler
       Runtime: nodejs8.10
 Outputs:

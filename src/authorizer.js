@@ -1,9 +1,9 @@
 exports.handler = async function (event) {
-  const token = event.authorizationToken.toLowerCase()
+  const token = event.authorizationToken//.toLowerCase()
   const methodArn = event.methodArn
 
   switch (token) {
-    case 'allow':
+    case 'Basic bWVzc2VudGU6cGlyZXQ=':
       return generateAuthResponse('user', 'Allow', methodArn)
     default:
       return generateAuthResponse('user', 'Deny', methodArn)
