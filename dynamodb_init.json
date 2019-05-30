@@ -1,0 +1,28 @@
+{
+    "blacklist_table": [
+        {
+            "PutRequest": {
+                "Item": {
+                    "userid": {
+                        "S": "messente"
+                    },
+                    "blacklist": {
+                        "L": []
+                    }
+                }
+            }
+         },
+         {
+            "PutRequest": {
+                "Item": {
+                    "userid": {
+                        "S": "piret"
+                    },
+                    "blacklist": {
+                        "L": []
+                    }
+                }
+            }
+         }
+    ]
+}

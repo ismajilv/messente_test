@@ -16,10 +16,10 @@ Resources:
     Type: AWS::DynamoDB::Table
     Properties:
       AttributeDefinitions:
-      - AttributeName: numb
-        AttributeType: N
+      - AttributeName: userid
+        AttributeType: S
       KeySchema:
-      - AttributeName: numb
+      - AttributeName: userid
         KeyType: HASH
       ProvisionedThroughput:
         ReadCapacityUnits: 5
@@ -44,7 +44,7 @@ Resources:
   MyFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: s3://messente-test-code/461ff0e7dd366955bf20bf4da80fa555
+      CodeUri: s3://messente-test-code/e62909f07e1c62744c2aa9e1e5670b93
       Handler: index.blacklist
       Runtime: python3.7
       Policies:
@@ -80,7 +80,7 @@ Resources:
   MessenteTestFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: s3://messente-test-code/461ff0e7dd366955bf20bf4da80fa555
+      CodeUri: s3://messente-test-code/e62909f07e1c62744c2aa9e1e5670b93
       Handler: authorizer.handler
       Runtime: nodejs8.10
 Outputs:

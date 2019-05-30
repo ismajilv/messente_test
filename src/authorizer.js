@@ -1,13 +1,18 @@
 exports.handler = async function (event) {
   const token = event.authorizationToken//.toLowerCase()
+
+  var encodedCreds = token.split(' ')[1]
+  var plainCreds = (new Buffer(encodedCreds, 'base64')).toString().split(':')
+  var username = plainCreds[0]
+  var password = plainCreds[1]
+  console.log(username, password)
+
   const methodArn = event.methodArn
 
-  switch (token) {
-    case 'Basic bWVzc2VudGU6cGlyZXQ=':
-      return generateAuthResponse('user', 'Allow', methodArn)
-    default:
-      return generateAuthResponse('user', 'Deny', methodArn)
-  }
+  console.log(password === 'piret')
+
+  if ((username === 'messente' && password === 'piret') || (username === 'piret' && password === 'messente')) return generateAuthResponse(username, 'Allow', methodArn)
+  else return generateAuthResponse(username, 'Deny', methodArn)
 }
 
 function generateAuthResponse (principalId, effect, methodArn) {
