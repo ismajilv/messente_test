@@ -67,6 +67,9 @@ https://documenter.getpostman.com/view/7171976/S1TVVwpM?version=latest
 Usage of many try catches are avoided to have simple implementation. I believe that validation of input should
 be done before the function accepts the input which AWS provide a way to do. 
 
+## What I changed after reading Messente blog post about Blacklist (https://messente.com/documentation/phonebook-api/blacklist):
+Post response code changed from 201 to 204.
+
 ## Improvements
 Get request can be supplied with query string to better listing. 
 The user's blacklist can be analysed in Dynamodb and if the pattern is found among those numbers, the user
