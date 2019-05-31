@@ -59,6 +59,84 @@ Authentication header with Basic Authentication and return a "Accept" or "Deny" 
 ```
 Python microservice is in [index.py](/src/index.py). Depending on request it calls different functions.
 
+### Python wrapper
+
+Wrapper python function for BlacklistAPI:
+[blacklist_api.py](./python_wrapper/blacklist_api.py)
+```python
+# python_wrapper.blacklist_api.py
+
+
+import requests
+from requests.auth import HTTPBasicAuth
+import json
+
+
+class Configuration:
+
+    def __init__(self, **args):
+        for a in ['username', 'password']:
+            setattr(self, a, args[a])
+
+
+class BlacklistApi:
+
+    def __init__(self, configuration):
+        self.auth = HTTPBasicAuth(configuration.username, configuration.password)
+        self.endpoint = 'blacklist/'
+
+    def fetch_blacklist(self):
+        r = requests.get('https://29xe3xpvca.execute-api.eu-west-1.amazonaws.com/Prod/' + self.endpoint,
+                         auth=self.auth)
+
+        return r.status_code, r.json()
+
+    def add_to_blacklist(self, number):
+        payload = {"number": number}
+
+        r = requests.post('https://29xe3xpvca.execute-api.eu-west-1.amazonaws.com/Prod/' + self.endpoint,
+                          auth=self.auth,
+                          data=json.dumps(payload))
+
+        return r.status_code, r.json()
+
+    def remove_from_blacklist(self, number):
+        r = requests.delete('https://29xe3xpvca.execute-api.eu-west-1.amazonaws.com/Prod/' + self.endpoint + number,
+                         auth=self.auth)
+
+        return r.status_code, r.json()
+
+```
+
+Usage of this api:
+```python
+from python_wrapper.blacklist_api import Configuration, BlacklistApi
+
+configuration = Configuration(username='messente', password='piret')
+blacklit_api = BlacklistApi(configuration)
+
+try:
+    status_code, response_json = blacklit_api.add_to_blacklist("87654321")
+    print(f"Status code: {status_code}, body: {response_json}")
+
+except Exception as e:
+    print("Exception when calling add_to_blacklist: %s\n" % e)
+
+try:
+    status_code, response_json = blacklit_api.remove_from_blacklist("87654321")
+    print(f"Status code: {status_code}, body: {response_json}")
+
+except Exception as e:
+    print("Exception when calling add_to_blacklist: %s\n" % e)
+
+try:
+    status_code, response_json = blacklit_api.fetch_blacklist()
+    print(f"Status code: {status_code}, body: {response_json}")
+
+except Exception as e:
+    print("Exception when calling add_to_blacklist: %s\n" % e)
+```
+
 ### Usage
 API small documentation is published in url below:
 https://documenter.getpostman.com/view/7171976/S1TVVwpM?version=latest
@@ -68,7 +146,7 @@ Usage of many try catches are avoided to have simple implementation. I believe t
 be done before the function accepts the input which AWS provide a way to do. 
 
 ## What I changed after reading Messente blog post about Blacklist (https://messente.com/documentation/phonebook-api/blacklist):
-Post response code changed from 201 to 204.
+Added simple python wrapper function for blacklist api.
 
 ## Improvements
 Get request can be supplied with query string to better listing. 
