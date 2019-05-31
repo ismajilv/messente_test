@@ -15,11 +15,11 @@ try:
     print(f"Status code: {status_code}, body: {response_json}")
 
 except Exception as e:
-    print("Exception when calling add_to_blacklist: %s\n" % e)
+    print("Exception when calling remove_from_blacklist: %s\n" % e)
 
 try:
     status_code, response_json = blacklit_api.fetch_blacklist()
     print(f"Status code: {status_code}, body: {response_json}")
 
 except Exception as e:
-    print("Exception when calling add_to_blacklist: %s\n" % e)
+    print("Exception when calling fetch_blacklist: %s\n" % e)
